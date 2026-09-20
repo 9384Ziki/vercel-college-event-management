@@ -8,6 +8,10 @@
   ],
   "routes": [
     {
+      "src": "/api/(.*)",
+      "dest": "https://college-event-backend-4p2e.onrender.com/api/$1"
+    },
+    {
       "src": "/(.*)",
       "dest": "/frontend/$1"
     }
