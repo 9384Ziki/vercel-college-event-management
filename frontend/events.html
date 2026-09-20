@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CampusConnect | Events</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">◈</span>
+    <span>CampusConnect</span>
+  </div>
+
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="events.html" class="active">Events</a>
+    <a href="my-events.html">My Events</a>
+    <a href="profile.html">Profile</a>
+  </nav>
+
+  <div class="account-area">
+    <span id="navUser">Guest</span>
+    <button id="logoutBtn" class="btn small" onclick="logoutStudent()" hidden>
+      Logout
+    </button>
+  </div>
+</header>
+
+<main class="page">
+
+  <section class="page-header">
+    <div>
+      <div class="eyebrow">CAMPUS EVENT NETWORK</div>
+      <h1>Explore Events</h1>
+      <p>
+        Discover workshops, hackathons, technology events and innovation
+        programs happening across campus.
+      </p>
+    </div>
+  </section>
+
+  <section class="event-tools">
+    <input
+      id="search"
+      type="text"
+      placeholder="Search events, venues or topics..."
+      oninput="filterEvents()"
+    >
+  </section>
+
+  <section id="eventsList" class="events-grid">
+    <div class="loading">
+      Loading events...
+    </div>
+  </section>
+
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script src="/app.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: college-events
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: backend}
+  template:
+    metadata:
+      labels: {app: backend}
+    spec:
+      containers:
+        - name: backend
+          image: college-event-backend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+          env:
+            - name: PORT
+              value: "5000"
+            - name: DB_HOST
+              valueFrom: {configMapKeyRef: {name: event-config, key: DB_HOST}}
+            - name: DB_PORT
+              valueFrom: {configMapKeyRef: {name: event-config, key: DB_PORT}}
+            - name: DB_NAME
+              valueFrom: {configMapKeyRef: {name: event-config, key: DB_NAME}}
+            - name: DB_USER
+              valueFrom: {configMapKeyRef: {name: event-config, key: DB_USER}}
+            - name: DB_PASSWORD
+              valueFrom: {secretKeyRef: {name: event-secrets, key: MYSQL_PASSWORD}}
+            - name: JWT_SECRET
+              valueFrom: {secretKeyRef: {name: event-secrets, key: JWT_SECRET}}
+            - name: CORS_ORIGIN
+              valueFrom: {configMapKeyRef: {name: event-config, key: CORS_ORIGIN}}
+          readinessProbe:
+            httpGet: {path: /api/health, port: 5000}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests: {cpu: "100m", memory: "128Mi"}
+            limits: {cpu: "500m", memory: "256Mi"}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: college-events
+spec:
+  selector: {app: backend}
+  ports:
+    - port: 5000
+      targetPort: 5000

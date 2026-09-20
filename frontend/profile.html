@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CampusConnect | Profile</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">◈</span>
+    <span>CampusConnect</span>
+  </div>
+
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="events.html">Events</a>
+    <a href="my-events.html">My Events</a>
+    <a href="profile.html" class="active">Profile</a>
+  </nav>
+
+  <div class="account-area">
+    <span id="navUser">Guest</span>
+    <button id="logoutBtn" class="btn small" onclick="logoutStudent()" hidden>
+      Logout
+    </button>
+  </div>
+</header>
+
+<main class="page">
+
+  <section class="page-header">
+    <div>
+      <div class="eyebrow">ACCOUNT</div>
+      <h1>My Profile</h1>
+      <p>Your CampusConnect account information.</p>
+    </div>
+  </section>
+
+  <section class="profile-card">
+
+    <div class="profile-avatar">
+      ◈
+    </div>
+
+    <div class="profile-details">
+      <div>
+        <span>Name</span>
+        <strong id="profileName">Student</strong>
+      </div>
+
+      <div>
+        <span>Email</span>
+        <strong id="profileEmail">-</strong>
+      </div>
+
+      <div>
+        <span>Role</span>
+        <strong id="profileRole">student</strong>
+      </div>
+    </div>
+
+  </section>
+
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script src="/app.js"></script>
+
+</body>
+</html>

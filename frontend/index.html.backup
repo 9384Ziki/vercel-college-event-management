@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>CampusConnect | College Events</title>
+
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+<header class="topbar">
+
+  <div class="brand">
+    <span class="brand-mark">◈</span>
+    <span>CampusConnect</span>
+  </div>
+
+  <nav>
+    <a href="index.html" class="active">Home</a>
+    <a href="events.html">Events</a>
+    <a href="my-events.html">My Events</a>
+    <a href="profile.html">Profile</a>
+  </nav>
+
+  <div class="account-area">
+
+    <span id="navUser">Guest</span>
+
+    <button
+      id="logoutBtn"
+      class="btn small"
+      onclick="logoutStudent()"
+      hidden
+    >
+      Logout
+    </button>
+
+  </div>
+
+</header>
+
+
+<main class="page">
+
+  <!-- HERO -->
+
+  <section class="hero">
+
+    <div class="eyebrow">
+      CLOUD CAMPUS EVENT PLATFORM
+    </div>
+
+    <h1>
+      Discover.
+      <span>Connect.</span>
+      Experience.
+    </h1>
+
+    <p>
+      Discover upcoming college events, register instantly,
+      and keep track of everything you're attending.
+    </p>
+
+    <div class="hero-actions">
+
+      <a
+        href="events.html"
+        class="btn primary"
+      >
+        Explore Events →
+      </a>
+
+      <a
+        href="my-events.html"
+        class="btn"
+      >
+        My Events
+      </a>
+
+    </div>
+
+  </section>
+
+
+  <!-- DASHBOARD -->
+
+  <section class="feature-grid">
+
+    <div class="feature-card">
+
+      <div class="feature-icon">
+        01 / DISCOVER
+      </div>
+
+      <h3>
+        Explore Campus Events
+      </h3>
+
+      <p>
+        Browse workshops, hackathons, technology
+        programs and innovation events happening
+        across your college.
+      </p>
+
+    </div>
+
+
+    <div class="feature-card">
+
+      <div class="feature-icon">
+        02 / REGISTER
+      </div>
+
+      <h3>
+        Register Instantly
+      </h3>
+
+      <p>
+        Find an event you like and register with
+        one click. Your registration is securely
+        stored in the database.
+      </p>
+
+    </div>
+
+
+    <div class="feature-card">
+
+      <div class="feature-icon">
+        03 / TRACK
+      </div>
+
+      <h3>
+        Manage Your Events
+      </h3>
+
+      <p>
+        View every event you've registered for
+        from your personal My Events dashboard.
+      </p>
+
+    </div>
+
+  </section>
+
+
+  <!-- PLATFORM STATUS -->
+
+  <section class="platform-panel">
+
+    <div>
+
+      <div class="eyebrow">
+        PLATFORM STATUS
+      </div>
+
+      <h2>
+        Your campus,
+        <span>connected.</span>
+      </h2>
+
+      <p>
+        CampusConnect brings college events,
+        registrations and student activity together
+        in one cloud-ready platform.
+      </p>
+
+    </div>
+
+
+    <div class="status-grid">
+
+      <div class="status-card">
+
+        <strong id="eventCount">
+          --
+        </strong>
+
+        <span>
+          Upcoming Events
+        </span>
+
+      </div>
+
+
+      <div class="status-card">
+
+        <strong id="myEventCount">
+          --
+        </strong>
+
+        <span>
+          My Registrations
+        </span>
+
+      </div>
+
+
+      <div class="status-card">
+
+        <strong>
+          LIVE
+        </strong>
+
+        <span>
+          Platform Status
+        </span>
+
+      </div>
+
+    </div>
+
+  </section>
+
+</main>
+
+
+<div id="toast" class="toast"></div>
+
+
+<script src="/app.js"></script>
+
+
+<script>
+
+async function updateDashboardStats() {
+
+  try {
+
+    const response =
+      await fetch('/api/events');
+
+    const events =
+      await response.json();
+
+    const eventCount =
+      document.getElementById('eventCount');
+
+    if (eventCount) {
+      eventCount.textContent =
+        events.length;
+    }
+
+  } catch (error) {
+
+    console.error(
+      'Could not load event count',
+      error
+    );
+
+  }
+
+
+  if (localStorage.getItem('token')) {
+
+    try {
+
+      const response =
+        await fetch('/api/my-events', {
+          headers: {
+            Authorization:
+              'Bearer ' +
+              localStorage.getItem('token')
+          }
+        });
+
+      if (response.ok) {
+
+        const events =
+          await response.json();
+
+        const count =
+          document.getElementById(
+            'myEventCount'
+          );
+
+        if (count) {
+          count.textContent =
+            events.length;
+        }
+
+      }
+
+    } catch (error) {
+
+      console.error(
+        'Could not load registrations',
+        error
+      );
+
+    }
+
+  }
+
+}
+
+updateDashboardStats();
+
+</script>
+
+</body>
+</html>

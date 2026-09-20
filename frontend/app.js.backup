@@ -1,0 +1,409 @@
+const API = '/api';
+
+let token = localStorage.getItem('token') || '';
+let currentUser = JSON.parse(localStorage.getItem('user') || 'null');
+let allEvents = [];
+let registeredEvents = JSON.parse(localStorage.getItem('registeredEvents') || '[]');
+
+function showToast(message) {
+  const toast = document.getElementById('toast');
+
+  toast.textContent = message;
+  toast.classList.add('show');
+
+  setTimeout(function() {
+    toast.classList.remove('show');
+  }, 2800);
+}
+
+function saveUser(user) {
+  currentUser = user;
+  localStorage.setItem('user', JSON.stringify(user));
+}
+
+function updateAccountUI() {
+  const navUser = document.getElementById('navUser');
+  const logoutBtn = document.getElementById('logoutBtn');
+
+  if (currentUser) {
+    navUser.textContent = currentUser.name || currentUser.email;
+    logoutBtn.hidden = false;
+  } else {
+    navUser.textContent = 'Guest';
+    logoutBtn.hidden = true;
+  }
+
+  updateMyEvents();
+}
+async function loadEvents() {
+  try {
+    const response = await fetch(API + '/events');
+
+    if (!response.ok) {
+      throw new Error('Failed to load events');
+    }
+
+    allEvents = await response.json();
+
+    renderEvents(allEvents);
+
+  } catch (error) {
+    console.error('Load events error:', error);
+
+    const container = document.getElementById('eventsList');
+
+    if (container) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <h3>Unable to load events</h3>
+          <p>Please make sure the backend server is running.</p>
+        </div>
+      `;
+    }
+  }
+}
+async function loadMyEvents() {
+  const container = document.getElementById('myEventsList');
+
+  if (!container) return;
+
+  if (!token) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <h3>Login required</h3>
+        <p>Please login to view your registered events.</p>
+        <a href="index.html" class="btn primary">Login</a>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="loading">
+      Loading your events...
+    </div>
+  `;
+
+  try {
+    const response = await fetch(API + '/my-events', {
+      headers: {
+        'Authorization': 'Bearer ' + token
+      }
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to load events');
+    }
+
+    if (!data.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">📅</div>
+          <h3>No registered events</h3>
+          <p>You haven't registered for any events yet.</p>
+          <a href="events.html" class="btn primary">Explore Events</a>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = data.map(event => `
+      <div class="event-card">
+        <div class="event-category">REGISTERED</div>
+
+        <h3>${esc(event.title)}</h3>
+
+        <p>${esc(event.description || '')}</p>
+
+        <div class="event-info">
+          <span>📅 ${formatDate(event.event_date)}</span>
+          <span>📍 ${esc(event.venue)}</span>
+        </div>
+
+        <div class="registered-badge">
+          ✓ Registered
+        </div>
+      </div>
+    `).join('');
+
+  } catch (error) {
+    console.error('My events error:', error);
+
+    container.innerHTML = `
+      <div class="empty-state">
+        <h3>Unable to load events</h3>
+        <p>${esc(error.message)}</p>
+      </div>
+    `;
+  }
+}
+function filterEvents() {
+  const search = document.getElementById('search').value
+    .trim()
+    .toLowerCase();
+
+  const filtered = allEvents.filter(function(event) {
+    return (
+      String(event.title).toLowerCase().includes(search) ||
+      String(event.description).toLowerCase().includes(search) ||
+      String(event.venue).toLowerCase().includes(search)
+    );
+  });
+
+  renderEvents(filtered);
+}
+
+async function registerStudent() {
+  const name = document.getElementById('name').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const auth = document.getElementById('auth');
+
+  if (!name || !email || !password) {
+    auth.textContent = 'Please fill in all fields.';
+    return;
+  }
+
+  auth.textContent = 'Creating your account...';
+
+  try {
+    const response = await fetch(API + '/auth/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: name,
+        email: email,
+        password: password
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      auth.textContent = data.message || 'Registration failed.';
+      return;
+    }
+
+    token = data.token;
+
+    localStorage.setItem('token', token);
+
+    saveUser(data.user);
+
+    auth.textContent = 'Account created successfully.';
+    showToast('Welcome to CampusConnect, ' + data.user.name + '!');
+
+    updateAccountUI();
+    renderEvents(allEvents);
+
+  } catch (error) {
+    console.error(error);
+    auth.textContent = 'Could not connect to backend.';
+  }
+}
+
+async function loginStudent() {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const auth = document.getElementById('auth');
+
+  if (!email || !password) {
+    auth.textContent = 'Email and password are required.';
+    return;
+  }
+
+  auth.textContent = 'Signing you in...';
+
+  try {
+    const response = await fetch(API + '/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email: email,
+        password: password
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      auth.textContent = data.message || 'Login failed.';
+      return;
+    }
+
+    token = data.token;
+
+    localStorage.setItem('token', token);
+
+    saveUser(data.user);
+
+    auth.textContent = 'Login successful.';
+    showToast('Welcome back, ' + data.user.name + '!');
+
+    updateAccountUI();
+    renderEvents(allEvents);
+
+  } catch (error) {
+    console.error(error);
+    auth.textContent = 'Could not connect to backend.';
+  }
+}
+
+async function joinEvent(id) {
+
+  if (!token) {
+    showToast('Please login before registering for an event.');
+    document.getElementById('account').scrollIntoView({
+      behavior: 'smooth'
+    });
+    return;
+  }
+
+  if (registeredEvents.includes(Number(id))) {
+    showToast('You are already registered for this event.');
+    return;
+  }
+
+  const button = document.getElementById('event-button-' + id);
+
+  if (button) {
+    button.disabled = true;
+    button.textContent = 'Registering...';
+  }
+
+  try {
+    const response = await fetch(API + '/events/' + id + '/register', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token
+      }
+    });
+
+    const data = await response.json();
+
+    if (response.status === 409) {
+      registeredEvents.push(Number(id));
+      saveRegisteredEvents();
+
+      markRegistered(id);
+
+      showToast('You are already registered for this event.');
+      return;
+    }
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Registration failed');
+    }
+
+    registeredEvents.push(Number(id));
+    saveRegisteredEvents();
+
+    markRegistered(id);
+
+    showToast('Successfully registered for the event!');
+
+  } catch (error) {
+    console.error(error);
+
+    if (button) {
+      button.disabled = false;
+      button.textContent = 'Register for Event';
+    }
+
+    showToast(error.message || 'Could not register for event.');
+  }
+}
+
+function markRegistered(id) {
+  const button = document.getElementById('event-button-' + id);
+
+  if (button) {
+    button.disabled = true;
+    button.className = 'event-register registered';
+    button.textContent = '✓ Registered';
+  }
+
+  document.getElementById('registeredCount').textContent =
+    registeredEvents.length;
+
+  updateMyEvents();
+}
+
+function saveRegisteredEvents() {
+  localStorage.setItem(
+    'registeredEvents',
+    JSON.stringify(registeredEvents)
+  );
+}
+
+function updateMyEvents() {
+  const container = document.getElementById('myEvents');
+
+  const myEvents = allEvents.filter(function(event) {
+    return registeredEvents.includes(Number(event.id));
+  });
+
+  document.getElementById('registeredCount').textContent = myEvents.length;
+
+  if (!myEvents.length) {
+    container.className = 'my-events-empty';
+
+    container.innerHTML = `
+      <div class="empty-icon">📅</div>
+      <h3>No events registered yet</h3>
+      <p>Register for an event and it will appear here.</p>
+    `;
+
+    return;
+  }
+
+  container.className = '';
+
+  container.innerHTML = myEvents.map(function(event) {
+    return `
+      <div class="my-event">
+        <strong>✓ ${escapeHtml(event.title)}</strong>
+        <span>
+          ${new Date(event.event_date).toLocaleDateString()}
+          • ${escapeHtml(event.venue)}
+        </span>
+      </div>
+    `;
+  }).join('');
+}
+
+function logoutStudent() {
+  token = '';
+  currentUser = null;
+
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+
+  showToast('You have been logged out.');
+
+  updateAccountUI();
+  renderEvents(allEvents);
+}
+
+function formatDate(date) {
+  return new Date(date).toLocaleString([], {
+    dateStyle: 'medium',
+    timeStyle: 'short'
+  });
+}
+
+window.loadEvents = loadEvents;
+window.filterEvents = filterEvents;
+window.registerStudent = registerStudent;
+window.loginStudent = loginStudent;
+window.joinEvent = joinEvent;
+window.logoutStudent = logoutStudent;
+
+updateAccountUI();
+loadEvents();

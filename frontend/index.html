@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CampusConnect | Login</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body class="auth-page">
+
+  <div class="auth-shell">
+
+    <div class="auth-brand">
+      <div class="brand-mark">C</div>
+
+      <div>
+        <strong>CampusConnect</strong>
+        <span>COLLEGE EVENT NETWORK</span>
+      </div>
+    </div>
+
+    <div class="auth-card">
+
+      <div class="auth-heading">
+        <div class="eyebrow">CAMPUS EVENT PLATFORM</div>
+
+        <h1 id="authTitle">Welcome back.</h1>
+
+        <p id="authSubtitle">
+          Sign in to discover and manage your campus events.
+        </p>
+      </div>
+
+      <div class="auth-tabs">
+
+        <button
+          id="loginTab"
+          class="auth-tab active"
+          type="button"
+          onclick="showLogin()"
+        >
+          LOGIN
+        </button>
+
+        <button
+          id="signupTab"
+          class="auth-tab"
+          type="button"
+          onclick="showSignup()"
+        >
+          SIGN UP
+        </button>
+
+      </div>
+
+      <!-- LOGIN -->
+
+      <form
+        id="loginForm"
+        class="auth-form"
+        onsubmit="event.preventDefault(); loginStudent();"
+      >
+
+        <label for="loginEmail">EMAIL</label>
+
+        <input
+          id="loginEmail"
+          type="email"
+          placeholder="student@college.edu"
+          autocomplete="email"
+          required
+        >
+
+        <label for="loginPassword">PASSWORD</label>
+
+        <input
+          id="loginPassword"
+          type="password"
+          placeholder="Enter your password"
+          autocomplete="current-password"
+          required
+        >
+
+        <div id="loginAuth" class="auth-message"></div>
+
+        <button
+          id="loginBtn"
+          class="btn primary auth-submit"
+          type="submit"
+        >
+          LOGIN
+        </button>
+
+      </form>
+
+      <!-- SIGN UP -->
+
+      <form
+        id="signupForm"
+        class="auth-form"
+        style="display:none"
+        onsubmit="event.preventDefault(); registerStudent();"
+      >
+
+        <label for="signupName">FULL NAME</label>
+
+        <input
+          id="signupName"
+          type="text"
+          placeholder="Your full name"
+          autocomplete="name"
+          required
+        >
+
+        <label for="signupEmail">EMAIL</label>
+
+        <input
+          id="signupEmail"
+          type="email"
+          placeholder="student@college.edu"
+          autocomplete="email"
+          required
+        >
+
+        <label for="signupPassword">PASSWORD</label>
+
+        <input
+          id="signupPassword"
+          type="password"
+          placeholder="Minimum 6 characters"
+          autocomplete="new-password"
+          minlength="6"
+          required
+        >
+
+        <div id="signupAuth" class="auth-message"></div>
+
+        <button
+          id="registerBtn"
+          class="btn primary auth-submit"
+          type="submit"
+        >
+          CREATE ACCOUNT
+        </button>
+
+      </form>
+
+      <div class="auth-footer">
+        <span>SECURE ACCESS</span>
+        <span>•</span>
+        <span>DOCKER</span>
+        <span>•</span>
+        <span>KUBERNETES</span>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script src="/app.js"></script>
+
+  <script>
+    function showLogin() {
+      document.getElementById('loginForm').style.display = 'flex';
+      document.getElementById('signupForm').style.display = 'none';
+
+      document.getElementById('loginTab').classList.add('active');
+      document.getElementById('signupTab').classList.remove('active');
+
+      document.getElementById('authTitle').textContent =
+        'Welcome back.';
+
+      document.getElementById('authSubtitle').textContent =
+        'Sign in to discover and manage your campus events.';
+    }
+
+    function showSignup() {
+      document.getElementById('loginForm').style.display = 'none';
+      document.getElementById('signupForm').style.display = 'flex';
+
+      document.getElementById('loginTab').classList.remove('active');
+      document.getElementById('signupTab').classList.add('active');
+
+      document.getElementById('authTitle').textContent =
+        'Create your account.';
+
+      document.getElementById('authSubtitle').textContent =
+        'Join CampusConnect and connect with your campus.';
+    }
+  </script>
+
+</body>
+</html>

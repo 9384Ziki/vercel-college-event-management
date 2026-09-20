@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CampusConnect | Home</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">◈</span>
+    <span>CampusConnect</span>
+  </div>
+
+  <nav>
+    <a href="home.html" class="active">Home</a>
+    <a href="events.html">Events</a>
+    <a href="my-events.html">My Events</a>
+    <a href="profile.html">Profile</a>
+  </nav>
+
+  <div class="account-area">
+    <span id="navUser">Guest</span>
+    <button id="logoutBtn" class="btn small" onclick="logoutStudent()" hidden>
+      Logout
+    </button>
+  </div>
+</header>
+
+<main class="page">
+
+  <section class="hero">
+    <div class="eyebrow">CLOUD CAMPUS PLATFORM</div>
+
+    <h1>
+      Connect.
+      <span>Discover.</span>
+      Participate.
+    </h1>
+
+    <p>
+      Your centralized college event management platform for discovering
+      workshops, hackathons, technology events and campus activities.
+    </p>
+
+    <div class="hero-actions">
+      <a href="events.html" class="btn primary">
+        Explore Events →
+      </a>
+
+      <a href="my-events.html" class="btn">
+        My Events
+      </a>
+    </div>
+  </section>
+
+  <section class="feature-grid">
+
+    <div class="feature-card">
+      <div class="feature-icon">01</div>
+      <h3>Discover</h3>
+      <p>Find upcoming college events and technology programs.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">02</div>
+      <h3>Register</h3>
+      <p>Register for events directly through the platform.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">03</div>
+      <h3>Participate</h3>
+      <p>Keep track of the events you have joined.</p>
+    </div>
+
+  </section>
+
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script src="/app.js"></script>
+
+</body>
+</html>

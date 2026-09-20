@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Events | CampusConnect</title>
+
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+  <!-- TOP NAVIGATION -->
+
+  <header class="topbar">
+
+    <div class="brand">
+      <div class="brand-mark">CC</div>
+
+      <div>
+        <div class="brand-name">CampusConnect</div>
+        <div class="brand-subtitle">College Event Platform</div>
+      </div>
+    </div>
+
+    <nav class="nav-links">
+
+      <a href="/home.html">Home</a>
+
+      <a
+        href="/events.html"
+        class="active"
+      >
+        Events
+      </a>
+
+      <a href="/my-events.html">
+        My Events
+      </a>
+
+      <a href="/profile.html">
+        Profile
+      </a>
+
+      <button
+        class="logout-btn"
+        onclick="logout()"
+      >
+        Logout
+      </button>
+
+    </nav>
+
+  </header>
+
+
+  <!-- MAIN CONTENT -->
+
+  <main class="page">
+
+    <section class="page-header">
+
+      <div>
+
+        <div class="eyebrow">
+          CAMPUS EVENTS
+        </div>
+
+        <h1>
+          Discover Events
+        </h1>
+
+        <p>
+          Explore workshops, hackathons, technology events
+          and campus activities.
+        </p>
+
+      </div>
+
+    </section>
+
+
+    <!-- SEARCH -->
+
+    <section class="event-tools">
+
+      <input
+        type="text"
+        id="eventSearch"
+        placeholder="Search events..."
+        autocomplete="off"
+      >
+
+    </section>
+
+
+    <!-- EVENTS -->
+
+    <section
+      id="eventsList"
+      class="events-grid"
+    >
+
+      <div class="loading">
+        Loading events...
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- TOAST -->
+
+  <div
+    id="toast"
+    class="toast"
+  ></div>
+
+
+  <script>
+
+    const API = '/api';
+
+    let allEvents = [];
+
+    let registeredEventIds = new Set();
+
+
+    // -----------------------------------------
+    // SESSION CHECK
+    // -----------------------------------------
+
+    function getToken() {
+      return localStorage.getItem('token');
+    }
+
+    function getUser() {
+      try {
+        return JSON.parse(
+          localStorage.getItem('user')
+        );
+      } catch {
+        return null;
+      }
+    }
+
+
+    function protectPage() {
+
+      const token = getToken();
+      const user = getUser();
+
+      if (!token || !user) {
+
+        window.location.href = '/index.html';
+
+        return false;
+      }
+
+      return true;
+    }
+
+
+    // -----------------------------------------
+    // LOGOUT
+    // -----------------------------------------
+
+    function logout() {
+
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+
+      window.location.href = '/index.html';
+    }
+
+
+    // -----------------------------------------
+    // TOAST
+    // -----------------------------------------
+
+    function showToast(message, type = 'success') {
+
+      const toast =
+        document.getElementById('toast');
+
+      toast.textContent = message;
+
+      toast.className =
+        `toast show ${type}`;
+
+      setTimeout(() => {
+
+        toast.className = 'toast';
+
+      }, 3000);
+    }
+
+
+    // -----------------------------------------
+    // LOAD REGISTERED EVENTS
+    // -----------------------------------------
+
+    async function loadRegisteredEvents() {
+
+      const token = getToken();
+
+      try {
+
+        const response = await fetch(
+          `${API}/my-events`,
+          {
+            headers: {
+              Authorization:
+                `Bearer ${token}`
+            }
+          }
+        );
+
+        if (!response.ok) {
+          return;
+        }
+
+        const events = await response.json();
+
+        registeredEventIds =
+          new Set(
+            events.map(event => Number(event.id))
+          );
+
+      } catch (error) {
+
+        console.error(
+          'Registered events error:',
+          error
+        );
+      }
+    }
+
+
+    // -----------------------------------------
+    // LOAD EVENTS
+    // -----------------------------------------
+
+    async function loadEvents() {
+
+      const eventsList =
+        document.getElementById('eventsList');
+
+      try {
+
+        const response =
+          await fetch(`${API}/events`);
+
+        if (!response.ok) {
+
+          throw new Error(
+            'Unable to load events'
+          );
+        }
+
+        allEvents =
+          await response.json();
+
+        await loadRegisteredEvents();
+
+        renderEvents(allEvents);
+
+      } catch (error) {
+
+        console.error(error);
+
+        eventsList.innerHTML = `
+          <div class="empty-state">
+            <h3>Unable to load events</h3>
+            <p>
+              Please check the backend connection
+              and try again.
+            </p>
+          </div>
+        `;
+      }
+    }
+
+
+    // -----------------------------------------
+    // FORMAT DATE
+    // -----------------------------------------
+
+    function formatDate(dateValue) {
+
+      const date =
+        new Date(dateValue);
+
+      if (Number.isNaN(date.getTime())) {
+        return 'Date unavailable';
+      }
+
+      return date.toLocaleDateString(
+        undefined,
+        {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric'
+        }
+      );
+    }
+
+
+    function formatTime(dateValue) {
+
+      const date =
+        new Date(dateValue);
+
+      if (Number.isNaN(date.getTime())) {
+        return '';
+      }
+
+      return date.toLocaleTimeString(
+        undefined,
+        {
+          hour: '2-digit',
+          minute: '2-digit'
+        }
+      );
+    }
+
+
+    // -----------------------------------------
+    // RENDER EVENTS
+    // -----------------------------------------
+
+    function renderEvents(events) {
+
+      const eventsList =
+        document.getElementById('eventsList');
+
+      if (!events.length) {
+
+        eventsList.innerHTML = `
+          <div class="empty-state">
+            <h3>No events found</h3>
+            <p>
+              Try another search.
+            </p>
+          </div>
+        `;
+
+        return;
+      }
+
+
+      eventsList.innerHTML =
+        events.map(event => {
+
+          const eventId =
+            Number(event.id);
+
+          const registered =
+            registeredEventIds.has(eventId);
+
+          return `
+            <article class="event-card">
+
+              <div class="event-category">
+                CAMPUS EVENT
+              </div>
+
+              <h2>
+                ${escapeHtml(event.title)}
+              </h2>
+
+              <p class="event-description">
+                ${escapeHtml(
+                  event.description ||
+                  'No description available.'
+                )}
+              </p>
+
+              <div class="event-info">
+
+                <div>
+                  <span>DATE</span>
+                  <strong>
+                    ${formatDate(event.event_date)}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>TIME</span>
+                  <strong>
+                    ${formatTime(event.event_date)}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>VENUE</span>
+                  <strong>
+                    ${escapeHtml(event.venue)}
+                  </strong>
+                </div>
+
+              </div>
+
+              <div class="event-actions">
+
+                ${
+                  registered
+                  ? `
+                    <span class="registered-badge">
+                      ✓ Registered
+                    </span>
+
+                    <button
+                      class="btn"
+                      onclick="unregisterEvent(${eventId})"
+                    >
+                      Unregister
+                    </button>
+                  `
+                  : `
+                    <button
+                      class="btn primary"
+                      onclick="registerEvent(${eventId})"
+                    >
+                      Register
+                    </button>
+                  `
+                }
+
+              </div>
+
+            </article>
+          `;
+
+        }).join('');
+    }
+
+
+    // -----------------------------------------
+    // REGISTER
+    // -----------------------------------------
+
+    async function registerEvent(eventId) {
+
+      const token = getToken();
+
+      if (!token) {
+
+        window.location.href =
+          '/index.html';
+
+        return;
+      }
+
+      try {
+
+        const response =
+          await fetch(
+            `${API}/events/${eventId}/register`,
+            {
+              method: 'POST',
+
+              headers: {
+                Authorization:
+                  `Bearer ${token}`
+              }
+            }
+          );
+
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+
+          throw new Error(
+            data.message ||
+            'Registration failed'
+          );
+        }
+
+        registeredEventIds.add(eventId);
+
+        renderEvents(
+          getFilteredEvents()
+        );
+
+        showToast(
+          'You are registered for this event.'
+        );
+
+      } catch (error) {
+
+        console.error(error);
+
+        showToast(
+          error.message,
+          'error'
+        );
+      }
+    }
+
+
+    // -----------------------------------------
+    // UNREGISTER
+    // -----------------------------------------
+
+    async function unregisterEvent(eventId) {
+
+      const confirmed =
+        confirm(
+          'Are you sure you want to unregister from this event?'
+        );
+
+      if (!confirmed) {
+        return;
+      }
+
+      const token = getToken();
+
+      try {
+
+        const response =
+          await fetch(
+            `${API}/events/${eventId}/register`,
+            {
+              method: 'DELETE',
+
+              headers: {
+                Authorization:
+                  `Bearer ${token}`
+              }
+            }
+          );
+
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+
+          throw new Error(
+            data.message ||
+            'Unregister failed'
+          );
+        }
+
+        registeredEventIds.delete(eventId);
+
+        renderEvents(
+          getFilteredEvents()
+        );
+
+        showToast(
+          'You have been unregistered from the event.'
+        );
+
+      } catch (error) {
+
+        console.error(error);
+
+        showToast(
+          error.message,
+          'error'
+        );
+      }
+    }
+
+
+    // -----------------------------------------
+    // SEARCH
+    // -----------------------------------------
+
+    function getFilteredEvents() {
+
+      const searchInput =
+        document.getElementById(
+          'eventSearch'
+        );
+
+      const query =
+        searchInput.value
+          .trim()
+          .toLowerCase();
+
+      if (!query) {
+        return allEvents;
+      }
+
+      return allEvents.filter(event => {
+
+        return (
+          String(event.title || '')
+            .toLowerCase()
+            .includes(query) ||
+
+          String(event.description || '')
+            .toLowerCase()
+            .includes(query) ||
+
+          String(event.venue || '')
+            .toLowerCase()
+            .includes(query)
+        );
+
+      });
+    }
+
+
+    document
+      .getElementById('eventSearch')
+      .addEventListener(
+        'input',
+        () => {
+          renderEvents(
+            getFilteredEvents()
+          );
+        }
+      );
+
+
+    // -----------------------------------------
+    // HTML ESCAPE
+    // -----------------------------------------
+
+    function escapeHtml(value) {
+
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+
+    // -----------------------------------------
+    // START
+    // -----------------------------------------
+
+    if (protectPage()) {
+      loadEvents();
+    }
+
+  </script>
+
+</body>
+</html>
